@@ -149,6 +149,24 @@ img.add_border {
 <p></p>
 <p><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/KSvJQ7nEAEA" width="560"></iframe></p>
 <p><a href="https://youtu.be/KSvJQ7nEAEA">https://youtu.be/KSvJQ7nEAEA</a> </p>
+<pre class="brush:html;auto-links:false;toolbar:false" contenteditable="false">先利用solvespace 繪製出四邊形，link1為142 link2為180、link3為200、兩base的距離為220，並繪製起始角度為42度
+分別繪製base1、base2、link1、link2、link3
+將零件進行組合（存成stl）
+把組合後的stl 利用程式轉換成obj 順便將單位轉換
+開啟webots
+新增Robot
+在Robot新增base1、base2、joint1、joint4
+利用CadShape分別將所需的零件匯入webots
+joint2需要建立在joint1下
+joint3需要建立在joint2下
+在joint1下建立馬達
+joint1 joint2 joint3下的boundingObject 新增Mesh並選擇零件
+開啟physics
+利用solvespace量測出接點的xy 距離輸入進anchor （joint2的x =1.05 y =0.95、joint3的x =2.53 y =1.97
+joint4下的solidReference 選擇link3
+更改joint4下的anchor為2.2、0、0
+將每個axis變更為0、0、1
+robot下的controller選擇fourbar</pre>
 <p></p><br />Exam << <a href='Exam.html'>Previous</a> <a href='Exam2.html'>Next</a> >> Exam2</div>
         
     <!-- footer -->
