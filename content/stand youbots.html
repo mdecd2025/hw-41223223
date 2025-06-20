@@ -142,14 +142,121 @@ img.add_border {
           </div>
           
         </header>
-    <div id="tipue_search_content">Exam1 << <a href='Exam1.html'>Previous</a> <a href='Exam3.html'>Next</a> >> Exam3<br /><h1>Exam2</h1>
-<p>Exam2 (10%): 利用 CAD 零組件建立模擬場景</p>
-<p>操作影片標題: 國立虎尾科技大學 - 機械設計工程系 - cd2025 Exam2 - 學員學號</p>
-<p><img alt="" height="225" src="./../images/螢幕擷取畫面 2025-05-25 234058.png" width="400"/></p>
-<p><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/XdyNH97b8Lc" width="560"></iframe></p>
-<p><a href="https://youtu.be/XdyNH97b8Lc">https://youtu.be/XdyNH97b8Lc</a></p>
-<p>先加入Robot<br/>.在Robot下的children 加入Solid再加入兩個HingeJoint<br/>.在base下的children加入Shape<br/>.在Shape下的geometry加入Box大小為1、0.1、0.1、appearance下修改顏色（先暫時用成白色）<br/>.在joint1下的endPoint加入Solid<br/>.在Solid下的children加入Pose<br/>.在Pose下的children加入Shape<br/>.在Shape下的geometry加入Box大小為0.4、0.1、0.1、appearance下修改顏色，顏色改為紅色<br/>.在Pose下的translation更改數值0.2、0、0<br/>.在Solid下的translation更改數值-0.5、0、0.1<br/>.修改Solid(link1)下的rotation <br/>.在Solid(link1)下的bounding加入Pose，在children下加入Box，修改尺寸0.4、0.1、0.1，並修改translation 0.2、0、0<br/>.開啟physics<br/>.在Solid(link1)下的children加入HingeJoint，<br/>.在joint1下的endPoint加入Solid<br/>.在Solid下的children加入兩個Pose<br/>.在Pose下的children加入Shape<br/>.在Shape下的geometry加入Box大小為0.6、0.1、0.1、appearance下修改顏色，顏色改為綠色<br/>.在Pose下的translation更改數值0.3、0、0<br/>.在Pose下的children加入Shape<br/>.在Shape下的geometry加入Box大小為0.1、0.3、0.1、appearance下修改顏色，顏色改為綠色，並更改Pose下的translation0.3，0.15，0<br/>.在Solid下的translation更改數值0.4、0、0.1<br/>.修改Solid(link2)下的rotation (由solvespace繪圖，推算出角度為160.2，180-160.2=19.8，19.8degree=0.34557519rad)<br/>.在Solid(link2)下的bounding加入Pose，在children下加入Box，修改尺寸0.6、0.1、0.1，並修改translation 0.3、0、0<br/>.開啟physics<br/>.在Solid(link2)下的children加入HingeJoint(與Pose同一階)，並改名為joint3<br/>.在joint3下的endPoint加入Solid<br/>.在Solid下的children加入Pose<br/>.在Pose下的children加入Shape<br/>.在Shape下的geometry加入Box大小為0.9、0.1、0.1、appearance下修改顏色，顏色改為藍色<br/>.在Pose下的translation更改數值0.45、0、0<br/>.在Solid下的translation更改數值0.6、0、-0.1<br/>.修改Solid(link3)下的rotation (由solvespace繪圖，推算出角度為55.94，180-55.96=124.04，124.04degree=2.1649064rad)<br/>.在Solid(link3)下的bounding加入Pose，在children下加入Box，修改尺寸0.9、0.1、0.1，並修改translation 0.45、0、0<br/>.開啟physics<br/>.在joint1下的jointParameters加入HingeJointParameters，修改axis0、0、1，修改anchor-0.5、0、0<br/>.在joint1下的device加入RotationalMotor，並將name改成motor<br/>.在joint2下的jointParameters加入HingeJointParameters，修改axis0、0、1，修改anchor0.4、0、0<br/>.在joint3下的jointParameters加入HingeJointParameters，修改axis0、0、1，修改anchor0.6、0、0<br/>.在joint4下的endPoint加入SolidReference，並選擇link3<br/>.在joint4下的jointParameters加入HingeJointParameters，修改axis0、0、1，修改anchor0.5、0、0<br/>.到Robot下的controller選擇fourbar controller<br/>.將base改成透明<br/>.按下開始<br/>.完整作動<br/>.完成</p>
-<br />Exam1 << <a href='Exam1.html'>Previous</a> <a href='Exam3.html'>Next</a> >> Exam3</div>
+    <div id="tipue_search_content">supervisor Robots程式 << <a href='supervisor Robots程式.html'>Previous</a> <a href='Brython.html'>Next</a> >> Brython<br /><h1>stand youbots</h1>
+<pre class="brush:cpp;auto-links:false;toolbar:false" contenteditable="false">from controller import Robot, Keyboard
+ 
+# === 機器人設定參數 ===
+WHEEL_RADIUS = 0.1  
+L = 0.471           
+W = 0.376           
+MAX_VELOCITY = 10.0 
+ 
+# === 初始化機器人與裝置 ===
+robot = Robot()
+timestep = int(robot.getBasicTimeStep())
+ 
+# 得分發射器
+emitter = robot.getDevice("score_emitter")
+score_to_send = 2  
+ 
+# 紅外線距離感測器
+sensor = robot.getDevice('sensor')
+sensor.enable(timestep)
+ 
+# 鍵盤初始化
+keyboard = Keyboard()
+keyboard.enable(timestep)
+ 
+# 四顆輪子（以機器人右前、左前、右後、左後順序）
+wheel5 = robot.getDevice("wheel5")
+wheel6 = robot.getDevice("wheel6")
+wheel7 = robot.getDevice("wheel7")
+wheel8 = robot.getDevice("wheel8")
+ 
+for wheel in [wheel5, wheel6, wheel7, wheel8]:
+    wheel.setPosition(float('inf'))  
+    wheel.setVelocity(0)
+ 
+# 設定輪速函式
+def set_wheel_velocity(v1, v2, v3, v4):
+    wheel5.setVelocity(v1)
+    wheel6.setVelocity(v2)
+    wheel7.setVelocity(v3)
+    wheel8.setVelocity(v4)
+ 
+# === 紅外線感測 AD值對應距離表 ===
+lookup_table = [
+    (1000, 0.00),
+    (620, 0.12),
+    (372, 0.13),
+    (248, 0.14),
+    (186, 0.15),
+    (0, 0.18)
+]
+ 
+# 根據 AD值做線性插值換算為距離
+def ad_to_distance(ad_value):
+    for i in range(len(lookup_table)-1):
+        a0, d0 = lookup_table[i]
+        a1, d1 = lookup_table[i+1]
+        if a1 &lt;= ad_value &lt;= a0:
+            return d0 + (d1 - d0) * (ad_value - a0) / (a1 - a0)
+    if ad_value &gt; lookup_table[0][0]:
+        return lookup_table[0][1]
+    return lookup_table[-1][1]
+ 
+# === 主要狀態 ===
+score = 0
+last_score_time = 0
+cooldown = 1.0  
+ 
+# === 說明提示 ===
+print("Use 'E', 'X', 'S', 'D' keys to control the robot.")
+print("E: Move forward, X: Move backward, S: Turn left, D: Turn right.")
+print("Press 'Q' to quit.")
+ 
+# === 主迴圈 ===
+while robot.step(timestep) != -1:
+    key = keyboard.getKey()  
+    sensor_value = sensor.getValue()
+    distance = ad_to_distance(sensor_value)
+    current_time = robot.getTime()
+ 
+    # 測試模式：按 M 或 K 可印出距離
+    if key == ord('M') or key == ord('m') or key == ord('K') or key == ord('k'):
+        print(distance)
+ 
+    # 得分偵測邏輯：當球進入一定距離範圍
+    if distance &lt; 0.11 and (current_time - last_score_time) &gt; cooldown:
+        score += score_to_send
+        print("得分")
+        print(distance)
+        emitter.send(str(score_to_send).encode('utf-8'))  
+        last_score_time = current_time
+ 
+    # === 鍵盤操控 ===
+    if key == ord('E') or key == ord('e'):
+        set_wheel_velocity(MAX_VELOCITY, MAX_VELOCITY, MAX_VELOCITY, MAX_VELOCITY)  
+    elif key == ord('X') or key == ord('x'):
+        set_wheel_velocity(-MAX_VELOCITY, -MAX_VELOCITY, -MAX_VELOCITY, -MAX_VELOCITY)  
+    elif key == ord('D') or key == ord('d'):
+        set_wheel_velocity(-MAX_VELOCITY, MAX_VELOCITY, -MAX_VELOCITY, MAX_VELOCITY)  
+    elif key == ord('S') or key == ord('s'):
+        set_wheel_velocity(MAX_VELOCITY, -MAX_VELOCITY, MAX_VELOCITY, -MAX_VELOCITY)  
+    elif key == ord('Q') or key == ord('q'):
+        print("Exiting...")
+        break
+    else:
+        set_wheel_velocity(0, 0, 0, 0)  </pre>
+<p><span><br/><br/><br/></span></p>
+<p><span>說明: </span></p>
+<p style="padding-left: 30px;"><span>籃框架被配置在一定範圍內, 可隨機慢速前進、後退及左右擺動, 投籃機構系統帶有一定數量的籃球, 被配置在可自由移動的輪車上.</span></p>
+<p style="padding-left: 30px;"><span>操作者可利用鍵盤特定按鍵控制投籃輪車的移動並發射投籃, 每投出一球後系統透過記分板進行計分, 並由送球機構進行補球或移動輪車取球, 遊戲可進行至全部數量籃球投完為止.</span></p>
+<p>請將期末協同專案執行過程、內容與心得, 製作成影片，配合字幕上傳至 Youtube 後嵌入各階段的期末報告頁面中.</p>
+<p>影片標題: <span style="background-color: #ffff00;">國立虎尾科技大學 - 機械設計工程系 - cd2025 期末報告 - 學員學號 - 各階段影片主題<br/></span></p>
+<p><span style="background-color: #ffff00;"></span></p>
+<p><span style="background-color: #ffff00;"></span></p>
+<br />supervisor Robots程式 << <a href='supervisor Robots程式.html'>Previous</a> <a href='Brython.html'>Next</a> >> Brython</div>
         
     <!-- footer -->
       <div class="container">
