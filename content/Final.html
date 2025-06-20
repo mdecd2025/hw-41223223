@@ -148,6 +148,7 @@ img.add_border {
 <p><span><a href="./../downloads/期末報告.pdf">/downloads/期末報告.pdf</a></span></p>
 <p><span><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/GLDgYkYZFQ4" width="560"></iframe></span></p>
 <p><span><a href="https://youtu.be/GLDgYkYZFQ4">https://youtu.be/GLDgYkYZFQ4</a></span></p>
+<p><span></span></p>
 <p><span><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/kwSnz1Xj8yA" width="560"></iframe><a href="https://youtu.be/kwSnz1Xj8yA"></a></span></p>
 <p><span><a href="https://youtu.be/kwSnz1Xj8yA">https://youtu.be/kwSnz1Xj8yA</a></span></p>
 <p><span><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/w9Z9XTjsLnE" width="560"></iframe></span></p>
@@ -156,7 +157,100 @@ img.add_border {
 <p><span><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/JSGYeilOWtI" width="560"></iframe></span></p>
 <p><span><a href="https://youtu.be/JSGYeilOWtI">https://youtu.be/JSGYeilOWtI</a></span></p>
 <p><span></span></p>
-<p><span></span></p>
+<br/><span></span>投籃機
+<pre class="brush:cpp;auto-links:false;toolbar:false" contenteditable="false">from controller import Robot, Keyboard
+ 
+# === 常數設定 ===
+TIME_STEP = 32                             
+MAX_VELOCITY = 10.0                        
+ANGLE_STEP = 40 * 3.14159 / 180            
+POSITION_M = ANGLE_STEP                    
+POSITION_K = 0.0                           
+ 
+# === 初始化機器人與鍵盤 ===
+robot = Robot()                            
+timestep = int(robot.getBasicTimeStep())  
+keyboard = Keyboard()                      
+keyboard.enable(timestep)                  
+# === 嘗試取得馬達與感測器 ===
+try:
+    motor = robot.getDevice('motor1')         
+    sensor = robot.getDevice('motor1_sensor') 
+    sensor.enable(timestep)                   
+    mechanism_enabled = True                  
+except Exception:
+    mechanism_enabled = False                 
+ 
+# === 嘗試取得四個輪子 ===
+try:
+    wheels = [robot.getDevice(f"wheel{i+1}") for i in range(4)]  # 取得 'wheel1'~'wheel4'
+    for wheel in wheels:
+        wheel.setPosition(float('inf'))       
+        wheel.setVelocity(0)                  
+    platform_enabled = True                   
+except Exception:
+    platform_enabled = False                  
+ 
+# === 狀態與按鍵觸發狀態控制 ===
+current_state = "allow_m"                     
+key_pressed = {                               
+    'k': False,
+    'm': False
+}
+ 
+# === 主控制迴圈 ===
+while robot.step(timestep) != -1:
+    key = keyboard.getKey()  # 取得當前鍵盤按鍵（ASCII碼或方向鍵常數）
+ 
+    # === 平台移動控制 ===
+    if platform_enabled:
+        if key == Keyboard.UP:
+            for wheel in wheels:
+                wheel.setVelocity(MAX_VELOCITY)  
+        elif key == Keyboard.DOWN:
+            for wheel in wheels:
+                wheel.setVelocity(-MAX_VELOCITY) 
+        elif key == Keyboard.LEFT:
+            # 左轉：左右輪相反轉
+            wheels[0].setVelocity(MAX_VELOCITY)
+            wheels[1].setVelocity(-MAX_VELOCITY)
+            wheels[2].setVelocity(MAX_VELOCITY)
+            wheels[3].setVelocity(-MAX_VELOCITY)
+        elif key == Keyboard.RIGHT:
+            # 右轉：左右輪相反轉
+            wheels[0].setVelocity(-MAX_VELOCITY)
+            wheels[1].setVelocity(MAX_VELOCITY)
+            wheels[2].setVelocity(-MAX_VELOCITY)
+            wheels[3].setVelocity(MAX_VELOCITY)
+        elif key == ord('Q') or key == ord('q'):
+            print("Exiting...")
+            break  # 按下 Q 鍵跳出迴圈結束模擬
+        else:
+            for wheel in wheels:
+                wheel.setVelocity(0)  
+ 
+    # === 馬達控制（M / K 鍵切換） ===
+    if mechanism_enabled:
+        _current_motor_position = sensor.getValue()  
+ 
+        # 按下 M：轉到 +40 度
+        if key == ord('M') or key == ord('m'):
+            if not key_pressed['m'] and current_state == "allow_m":
+                motor.setPosition(POSITION_M)       
+                current_state = "allow_k"           
+            key_pressed['m'] = True
+        else:
+            key_pressed['m'] = False                
+ 
+        # 按下 K：轉回 0 度
+        if key == ord('K') or key == ord('k'):
+            if not key_pressed['k'] and current_state == "allow_k":
+                motor.setPosition(POSITION_K)
+                current_state = "allow_m"           
+            key_pressed['k'] = True
+        else:
+            key_pressed['k'] = False
+</pre>
 <p><span></span></p>
 <p><span>說明: </span></p>
 <p style="padding-left: 30px;"><span>籃框架被配置在一定範圍內, 可隨機慢速前進、後退及左右擺動, 投籃機構系統帶有一定數量的籃球, 被配置在可自由移動的輪車上.</span></p>
