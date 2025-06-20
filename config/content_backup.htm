@@ -21,7 +21,8 @@
 <h2>task2</h2>
 <p><a href="https://mdecd2025.github.io/hw-41223222/content/Brython.html?src=https://gist.githubusercontent.com/41223222/7fa8bc7875a0d359df515a2d251605d6/raw/915f3853578b01f1acc0de4b9ffde33a5b453100/g6*list">G6 lis</a></p>
 <p><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/03MX1AWL4zs" width="560"></iframe></p>
-<p><a href="https://youtu.be/03MX1AWL4zs">https://youtu.be/03MX1AWL4zs</a> </p><h2>task3</h2>
+<p><a href="https://youtu.be/03MX1AWL4zs">https://youtu.be/03MX1AWL4zs</a> </p>
+<h2>task3</h2>
 <p><img alt="" height="212" src="/images/螢幕擷取畫面 2025-06-14 183911.png" width="400"/></p>
 <p><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/YeGnvFrAZfg" width="560"></iframe></p>
 <p><a href="https://youtu.be/YeGnvFrAZfg">https://youtu.be/YeGnvFrAZfg</a></p>
@@ -76,9 +77,11 @@
 <p></p>
 <p></p>
 <p></p>
-<p></p><h2>task4</h2>
+<p></p>
+<h2>task4</h2>
 <p><img alt="" height="210" src="/images/螢幕擷取畫面 2025-06-14 191900.png" width="400"/></p>
-<p><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/vcLDnFUy9TE" width="560"></iframe><a href="https://youtu.be/vcLDnFUy9TE">https://youtu.be/vcLDnFUy9TE</a></p><h2>task5</h2>
+<p><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/vcLDnFUy9TE" width="560"></iframe><a href="https://youtu.be/vcLDnFUy9TE">https://youtu.be/vcLDnFUy9TE</a></p>
+<h2>task5</h2>
 <h2>task6</h2>
 <h1>Homework</h1>
 <p>作業 (30%)</p>
@@ -180,7 +183,8 @@
 <p></p>
 <p></p>
 <p></p>
-<p></p><h1>Midterm</h1>
+<p></p>
+<h1>Midterm</h1>
 <p>本課程所繳交的期中成績為學員自評之學習期望成績.</p>
 <p>期中考週的自評期望成績繳交流程:</p>
 <ol>
@@ -250,6 +254,7 @@ robot下的controller選擇fourbar</pre>
 <p><span><a href="/downloads/期末報告.pdf">/downloads/期末報告.pdf</a></span></p>
 <p><span><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/GLDgYkYZFQ4" width="560"></iframe></span></p>
 <p><span><a href="https://youtu.be/GLDgYkYZFQ4">https://youtu.be/GLDgYkYZFQ4</a></span></p>
+<p><span></span></p>
 <p><span><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/kwSnz1Xj8yA" width="560"></iframe><a href="https://youtu.be/kwSnz1Xj8yA"></a></span></p>
 <p><span><a href="https://youtu.be/kwSnz1Xj8yA">https://youtu.be/kwSnz1Xj8yA</a></span></p>
 <p><span><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/w9Z9XTjsLnE" width="560"></iframe></span></p>
@@ -257,14 +262,337 @@ robot下的controller選擇fourbar</pre>
 <p><span></span></p>
 <p><span><iframe allowfullscreen="allowfullscreen" height="314" src="//www.youtube.com/embed/JSGYeilOWtI" width="560"></iframe></span></p>
 <p><span><a href="https://youtu.be/JSGYeilOWtI">https://youtu.be/JSGYeilOWtI</a></span></p>
-<p><span></span></p>
-<p><span></span></p>
-<p><span></span></p>
+<h3>投籃機程式</h3>
+<pre class="brush:cpp;auto-links:false;toolbar:false" contenteditable="false">from controller import Robot, Keyboard
+ 
+# === 常數設定 ===
+TIME_STEP = 32                             
+MAX_VELOCITY = 10.0                        
+ANGLE_STEP = 40 * 3.14159 / 180            
+POSITION_M = ANGLE_STEP                    
+POSITION_K = 0.0                           
+ 
+# === 初始化機器人與鍵盤 ===
+robot = Robot()                            
+timestep = int(robot.getBasicTimeStep())  
+keyboard = Keyboard()                      
+keyboard.enable(timestep)                  
+# === 嘗試取得馬達與感測器 ===
+try:
+    motor = robot.getDevice('motor1')         
+    sensor = robot.getDevice('motor1_sensor') 
+    sensor.enable(timestep)                   
+    mechanism_enabled = True                  
+except Exception:
+    mechanism_enabled = False                 
+ 
+# === 嘗試取得四個輪子 ===
+try:
+    wheels = [robot.getDevice(f"wheel{i+1}") for i in range(4)]  # 取得 'wheel1'~'wheel4'
+    for wheel in wheels:
+        wheel.setPosition(float('inf'))       
+        wheel.setVelocity(0)                  
+    platform_enabled = True                   
+except Exception:
+    platform_enabled = False                  
+ 
+# === 狀態與按鍵觸發狀態控制 ===
+current_state = "allow_m"                     
+key_pressed = {                               
+    'k': False,
+    'm': False
+}
+ 
+# === 主控制迴圈 ===
+while robot.step(timestep) != -1:
+    key = keyboard.getKey()  # 取得當前鍵盤按鍵（ASCII碼或方向鍵常數）
+ 
+    # === 平台移動控制 ===
+    if platform_enabled:
+        if key == Keyboard.UP:
+            for wheel in wheels:
+                wheel.setVelocity(MAX_VELOCITY)  
+        elif key == Keyboard.DOWN:
+            for wheel in wheels:
+                wheel.setVelocity(-MAX_VELOCITY) 
+        elif key == Keyboard.LEFT:
+            # 左轉：左右輪相反轉
+            wheels[0].setVelocity(MAX_VELOCITY)
+            wheels[1].setVelocity(-MAX_VELOCITY)
+            wheels[2].setVelocity(MAX_VELOCITY)
+            wheels[3].setVelocity(-MAX_VELOCITY)
+        elif key == Keyboard.RIGHT:
+            # 右轉：左右輪相反轉
+            wheels[0].setVelocity(-MAX_VELOCITY)
+            wheels[1].setVelocity(MAX_VELOCITY)
+            wheels[2].setVelocity(-MAX_VELOCITY)
+            wheels[3].setVelocity(MAX_VELOCITY)
+        elif key == ord('Q') or key == ord('q'):
+            print("Exiting...")
+            break  # 按下 Q 鍵跳出迴圈結束模擬
+        else:
+            for wheel in wheels:
+                wheel.setVelocity(0)  
+ 
+    # === 馬達控制（M / K 鍵切換） ===
+    if mechanism_enabled:
+        _current_motor_position = sensor.getValue()  
+ 
+        # 按下 M：轉到 +40 度
+        if key == ord('M') or key == ord('m'):
+            if not key_pressed['m'] and current_state == "allow_m":
+                motor.setPosition(POSITION_M)       
+                current_state = "allow_k"           
+            key_pressed['m'] = True
+        else:
+            key_pressed['m'] = False                
+ 
+        # 按下 K：轉回 0 度
+        if key == ord('K') or key == ord('k'):
+            if not key_pressed['k'] and current_state == "allow_k":
+                motor.setPosition(POSITION_K)
+                current_state = "allow_m"           
+            key_pressed['k'] = True
+        else:
+            key_pressed['k'] = False
+</pre>
+<p><br/><br/><br/><br/><br/></p>
+<p><br/><br/><br/><br/><br/><br/></p>
+<h1>supervisor Robots程式</h1>
+<pre class="brush:cpp;auto-links:false;toolbar:false" contenteditable="false">from controller import Supervisor, Keyboard
+import time
+import random
+import numpy as np
+import re
+ 
+# ----------------- 基本參數區 -----------------
+HOOP_CENTER = [0.622, -0.103, 0.742838]        
+BALL_DEF_PATTERN = re.compile(r"Sphere_\d+")  
+ 
+supervisor = Supervisor()                     
+timestep = int(supervisor.getBasicTimeStep()) 
+keyboard = Keyboard()                         
+keyboard.enable(timestep)
+ 
+# 球與軌跡點設定
+sphere_radius = 0.1
+TRAJECTORY_POINT_RADIUS = 0.03
+TRAJECTORY_POINT_STEP = 0.12
+TRAJECTORY_MAX_POINTS = 5                     
+ 
+# 追蹤狀態參數
+waiting_ball_def = None
+waiting_ball_info = None
+current_tracked_def = None
+trajectory_points = []
+ 
+# 時間與按鍵防抖設定
+last_key_time = 0
+debounce_time = 0.5
+default_feed_pos = (-0.35, 0.0, 0.9)           
+last_print_time = time.time()
+PRINT_INTERVAL = 0.2
+ 
+# ----------------- 輔助函式區 -----------------
+ 
+# 轉換 youbot 的局部座標為世界座標
+def axis_angle_to_rotation_matrix(axis, angle):
+    x, y, z = axis
+    c = np.cos(angle)
+    s = np.sin(angle)
+    C = 1 - c
+    return np.array([
+        [x*x*C + c,   x*y*C - z*s, x*z*C + y*s],
+        [y*x*C + z*s, y*y*C + c,   y*z*C - x*s],
+        [z*x*C - y*s, z*y*C + x*s, z*z*C + c]
+    ])
+ 
+def youbot_local_to_world(local_pos):
+    youbot_node = supervisor.getFromDef('youbot')
+    if youbot_node is None:
+        raise RuntimeError("找不到 DEF 為 youbot 的 Robot 物件")
+    youbot_translation = np.array(youbot_node.getField('translation').getSFVec3f())
+    youbot_rotation = youbot_node.getField('rotation').getSFRotation()
+    youbot_axis = youbot_rotation[:3]
+    youbot_angle = youbot_rotation[3]
+    youbot_rot_mat = axis_angle_to_rotation_matrix(youbot_axis, youbot_angle)
+    rotated = youbot_rot_mat @ np.array(local_pos)
+    world_pos = youbot_translation + rotated
+    return tuple(world_pos)
+ 
+# 隨機產生不重複的 DEF 名稱
+def generate_valid_def_name(base_name="Sphere"):
+    timestamp = int(supervisor.getTime() * 1000)
+    return f"{base_name}_{timestamp}_{random.randint(0, 10000)}"
+ 
+# 隨機顏色
+def generate_random_color():
+    return random.random(), random.random(), random.random()
+ 
+# ----------------- 球與軌跡點建立 -----------------
+ 
+def create_static_ball(def_name, world_pos, r, g, b):
+    sphere_string = f"""
+    DEF {def_name} Solid {{
+      translation {world_pos[0]} {world_pos[1]} {world_pos[2]}
+      contactMaterial "ball"
+      children [
+        Shape {{
+          geometry Sphere {{
+            radius {sphere_radius}
+          }}
+          appearance Appearance {{
+            material Material {{
+              diffuseColor {r} {g} {b}
+            }}
+          }}
+        }}
+      ]
+      boundingObject Sphere {{
+        radius {sphere_radius}
+      }}
+    }}
+    """
+    supervisor.getRoot().getField("children").importMFNodeFromString(-1, sphere_string)
+ 
+def create_dynamic_ball(def_name, world_pos, r, g, b):
+    sphere_string = f"""
+    DEF {def_name} Solid {{
+      translation {world_pos[0]} {world_pos[1]} {world_pos[2]}
+      contactMaterial "ball"
+      children [
+        Shape {{
+          geometry Sphere {{
+            radius {sphere_radius}
+          }}
+          appearance Appearance {{
+            material Material {{
+              diffuseColor {r} {g} {b}
+            }}
+          }}
+        }}
+      ]
+      boundingObject Sphere {{
+        radius {sphere_radius}
+      }}
+      physics Physics {{
+        mass 0.01
+        density -1
+      }}
+    }}
+    """
+    supervisor.getRoot().getField("children").importMFNodeFromString(-1, sphere_string)
+ 
+def create_trajectory_point(pos):
+    def_name = generate_valid_def_name("TrajectoryPt")
+    sphere_string = f"""
+    DEF {def_name} Transform {{
+      translation {pos[0]} {pos[1]} {pos[2]}
+      children [
+        Shape {{
+          geometry Sphere {{
+            radius {TRAJECTORY_POINT_RADIUS}
+          }}
+          appearance Appearance {{
+            material Material {{
+              diffuseColor 1 0.7 0
+              transparency 0.3
+            }}
+          }}
+        }}
+      ]
+    }}
+    """
+    supervisor.getRoot().getField("children").importMFNodeFromString(-1, sphere_string)
+    return def_name
+ 
+def delete_trajectory_points():
+    global trajectory_points
+    for _, def_name in trajectory_points:
+        node = supervisor.getFromDef(def_name)
+        if node:
+            node.remove()
+    trajectory_points.clear()
+ 
+# ----------------- 控制球生成與擊出 -----------------
+ 
+def create_static_sphere(supervisor, x, y, z):
+    global waiting_ball_def, waiting_ball_info
+    def_name = generate_valid_def_name()
+    waiting_ball_def = def_name
+    r, g, b = generate_random_color()
+    world_pos = youbot_local_to_world((x, y, z))
+    waiting_ball_info = (world_pos, r, g, b)
+    create_static_ball(def_name, world_pos, r, g, b)
+ 
+def activate_dynamic_ball():
+    global waiting_ball_def, waiting_ball_info
+    if waiting_ball_def is None or waiting_ball_info is None:
+        return
+    ball_node = supervisor.getFromDef(waiting_ball_def)
+    if ball_node is not None:
+        ball_node.remove()
+        supervisor.step(int(supervisor.getBasicTimeStep()))
+    world_pos, r, g, b = waiting_ball_info
+    create_dynamic_ball(waiting_ball_def, world_pos, r, g, b)
+    waiting_ball_def = None
+    waiting_ball_info = None
+ 
+def is_ball_landed(pos, threshold_z=0.13):
+    return pos[2] &lt; threshold_z
+ 
+# ----------------- 主控制流程 -----------------
+ 
+print("按 A 產生一顆靜止球，按 M 讓球變 dynamic 可擊出（最多只有5個軌跡點跟著球跑，球落地後軌跡自動消失）")
+ 
+while supervisor.step(timestep) != -1:
+    key = keyboard.getKey()
+    current_time = time.time()
+ 
+    # 產生靜止球
+    if key == ord('A') and (current_time - last_key_time &gt;= debounce_time):
+        if waiting_ball_def is None:
+            create_static_sphere(supervisor, *default_feed_pos)
+            current_tracked_def = waiting_ball_def
+            delete_trajectory_points()
+        else:
+            print("還有一顆球等待擊出，請先擊出再產生新球。")
+        last_key_time = current_time
+ 
+    # 擊球（轉為動態）
+    if key == ord('M') and (current_time - last_key_time &gt;= debounce_time):
+        activate_dynamic_ball()
+        last_key_time = current_time
+ 
+    # 拋物線追蹤與軌跡點
+    if current_tracked_def is not None:
+        ball_node = supervisor.getFromDef(current_tracked_def)
+        if ball_node is not None:
+            pos = ball_node.getPosition()
+            if current_time - last_print_time &gt;= PRINT_INTERVAL:
+                last_print_time = current_time
+            if (not trajectory_points) or np.linalg.norm(np.array(pos) - np.array(trajectory_points[-1][0])) &gt; TRAJECTORY_POINT_STEP:
+                def_name = create_trajectory_point(pos)
+                trajectory_points.append((pos, def_name))
+                if len(trajectory_points) &gt; TRAJECTORY_MAX_POINTS:
+                    _, old_def = trajectory_points.pop(0)
+                    node = supervisor.getFromDef(old_def)
+                    if node:
+                        node.remove()
+            if is_ball_landed(pos):
+                delete_trajectory_points()
+        else:
+            delete_trajectory_points()
+            current_tracked_def = None</pre>
+<p><span><br/><br/></span></p>
 <p><span>說明: </span></p>
 <p style="padding-left: 30px;"><span>籃框架被配置在一定範圍內, 可隨機慢速前進、後退及左右擺動, 投籃機構系統帶有一定數量的籃球, 被配置在可自由移動的輪車上.</span></p>
 <p style="padding-left: 30px;"><span>操作者可利用鍵盤特定按鍵控制投籃輪車的移動並發射投籃, 每投出一球後系統透過記分板進行計分, 並由送球機構進行補球或移動輪車取球, 遊戲可進行至全部數量籃球投完為止.</span></p>
 <p>請將期末協同專案執行過程、內容與心得, 製作成影片，配合字幕上傳至 Youtube 後嵌入各階段的期末報告頁面中.</p>
-<p>影片標題: <span style="background-color: #ffff00;">國立虎尾科技大學 - 機械設計工程系 - cd2025 期末報告 - 學員學號 - 各階段影片主題<br/></span></p><h1>Brython</h1>
+<p>影片標題: <span style="background-color: #ffff00;">國立虎尾科技大學 - 機械設計工程系 - cd2025 期末報告 - 學員學號 - 各階段影片主題<br/></span></p>
+<p><span style="background-color: #ffff00;"></span></p>
+<p><span style="background-color: #ffff00;"></span></p>
+<h1>Brython</h1>
 <p><button id="add1to100">1 add to 100</button></p>
 <!-- 導入 brython 程式庫 -->
 <p>
